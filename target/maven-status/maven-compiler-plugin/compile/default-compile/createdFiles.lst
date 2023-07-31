@@ -1,0 +1,12 @@
+br\com\treinamento\lojavirtual\service\impl\UserServiceImpl.class
+br\com\treinamento\lojavirtual\service\UserService.class
+br\com\treinamento\lojavirtual\LojaVirtualApplication.class
+br\com\treinamento\lojavirtual\model\entities\User.class
+br\com\treinamento\lojavirtual\controller\UserController.class
+br\com\treinamento\lojavirtual\controller\HomeController.class
+br\com\treinamento\lojavirtual\config\Configurations.class
+br\com\treinamento\lojavirtual\service\AuthenticationService.class
+br\com\treinamento\lojavirtual\model\dto\UserDTO.class
+br\com\treinamento\lojavirtual\service\TokenService.class
+br\com\treinamento\lojavirtual\repository\UserRepository.class
+br\com\treinamento\lojavirtual\config\FilterToken.class
