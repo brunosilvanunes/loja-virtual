@@ -1,7 +1,7 @@
 package br.com.treinamento.lojavirtual.service;
 
 import br.com.treinamento.lojavirtual.model.entities.User;
-import br.com.treinamento.lojavirtual.repository.UserRepository;
+import br.com.treinamento.lojavirtual.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,8 +16,6 @@ public class AuthenticationService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = repository.findByUsername(username);
-
-        return user;
+        return repository.findByUsername(username);
     }
 }

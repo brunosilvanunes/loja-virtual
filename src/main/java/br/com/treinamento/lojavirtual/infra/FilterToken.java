@@ -1,13 +1,12 @@
-package br.com.treinamento.lojavirtual.config;
+package br.com.treinamento.lojavirtual.infra;
 
-import br.com.treinamento.lojavirtual.repository.UserRepository;
+import br.com.treinamento.lojavirtual.repositories.UserRepository;
 import br.com.treinamento.lojavirtual.service.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -30,20 +29,25 @@ public class FilterToken extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
 
-        String token;
+        var token = recoverToken(request);
 
-        var authorizationHeader = request.getHeader("Authorization");
+        if (token != null) {
 
-        if (authorizationHeader != null) {
-            token = authorizationHeader.replace("Bearer ", "");
+            var username = this.tokenService.getSubject(token);
+            var user = this.repository.findByUsername(username);
 
-            var subject = this.tokenService.getSubject(token);
-            var user = this.repository.findByUsername(subject);
             var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private String recoverToken(HttpServletRequest request) {
+        var authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null) return null;
+
+        return authHeader.replace("Bearer ", "");
     }
 }

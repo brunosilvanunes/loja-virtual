@@ -1,23 +1,28 @@
 package br.com.treinamento.lojavirtual.controller;
 
-import br.com.treinamento.lojavirtual.model.dto.AuthorizationDTO;
-import br.com.treinamento.lojavirtual.model.dto.UserDTO;
+import br.com.treinamento.lojavirtual.model.dto.LoginResponseDTO;
+import br.com.treinamento.lojavirtual.model.dto.RegisterDTO;
 import br.com.treinamento.lojavirtual.model.entities.User;
+import br.com.treinamento.lojavirtual.repositories.UserRepository;
 import br.com.treinamento.lojavirtual.service.TokenService;
-import br.com.treinamento.lojavirtual.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/login")
-//@CrossOrigin(origins = "http://localhost:4200")
+@RequestMapping("auth")
 public class UserController {
 
     @Autowired
-    private UserService service;
+    private UserRepository repository;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -25,26 +30,27 @@ public class UserController {
     @Autowired
     private TokenService tokenService;
 
-    @PostMapping
-    @ResponseBody
-    public AuthorizationDTO login(@RequestBody UserDTO userDTO) {
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid RegisterDTO data) {
         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                new UsernamePasswordAuthenticationToken(userDTO.getUsername(), userDTO.getPassword());
-        AuthorizationDTO authorizationDTO = new AuthorizationDTO();
+                new UsernamePasswordAuthenticationToken(data.username(), data.password());
 
         Authentication authenticate = this.authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+        var token = tokenService.generateToken((User) authenticate.getPrincipal());
 
-        var user = (User) authenticate.getPrincipal();
-        var token = tokenService.gerarToken(user);
-
-        authorizationDTO.setToken(token);
-
-        return authorizationDTO;
+        return ResponseEntity.ok(new LoginResponseDTO(token));
 
     }
 
     @PostMapping("/register")
-    public UserDTO register(@RequestBody UserDTO userDTO) {
-        return service.register(userDTO);
+    public ResponseEntity register(@RequestBody RegisterDTO data) {
+        if (this.repository.findByUsername(data.username()) != null) return ResponseEntity.badRequest().build();
+
+        String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
+        User newUser = new User(data.username(), encryptedPassword, data.role());
+
+        this.repository.save(newUser);
+
+        return ResponseEntity.ok().build();
     }
 }

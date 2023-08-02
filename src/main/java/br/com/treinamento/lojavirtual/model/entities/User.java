@@ -1,5 +1,6 @@
 package br.com.treinamento.lojavirtual.model.entities;
 
+import br.com.treinamento.lojavirtual.enumeration.RoleEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,7 +14,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Table(name = "USER")
+@Table(name = "USERS")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,10 +28,21 @@ public class User implements UserDetails {
     private String username;
     @Column(name = "PASSWORD")
     private String password;
+    @Column(name = "ROLE")
+    @Enumerated(EnumType.STRING)
+    private RoleEnum role;
+
+    public User(String username, String password, RoleEnum role) {
+        this.username = username;
+        this.password = password;
+        this.role = role;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        if (this.role == RoleEnum.ADMIN)
+            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
+        else return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override
